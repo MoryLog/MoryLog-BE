@@ -1,16 +1,17 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { IssuedTokenPair, JWT_ALGORITHM, JWT_TOKEN_TYPE, JwtPayload, JwtTokenType } from "./type/jwt.types";
-import { createHash, randomUUID } from "crypto";
+import { randomUUID } from "crypto";
 import { env } from "src/global/config/env";
 import { InvalidTokenException } from "./exception/invalid-token.exception";
-import { type RefreshTokenStore } from "./port/refresh-token-store";
+import { REFRESH_TOKEN_STORE, type RefreshTokenStore } from "./port/refresh-token-store";
 import { RefreshToken } from "src/domain/user/infrastructure/security/refresh-token/refresh-token";
 
 @Injectable()
 export class JwtTokenIssuer{
     constructor(
         private readonly jwtService: JwtService,
+        @Inject(REFRESH_TOKEN_STORE)
         private readonly refreshTokenStore: RefreshTokenStore
     ){}
 
@@ -22,7 +23,7 @@ export class JwtTokenIssuer{
 
         await this.refreshTokenStore.save(RefreshToken.create({
             userId: userId,
-            refreshToken: this.digest(refreshToken),
+            refreshToken,
             ttlSeconds: Number(env.jwt.JWT_REFRESH_EXPIRATION)
         }));
         
@@ -89,14 +90,6 @@ export class JwtTokenIssuer{
                 expiresIn: expiration
             }
         )
-    }
-
-    private digest(
-        token: string
-    ): string{
-        return createHash("SHA256")
-            .update(token)
-            .digest("base64")
     }
 
     private createResult(accessToken: string, refreshToken: string): IssuedTokenPair{

@@ -33,7 +33,7 @@ export class User{
         user.email = param.email;
         user.blogName = param.blogName;
         user.profileImageUrl = param.profileImageUrl;
-        user.passwordHash = param.profileImageUrl;
+        user.passwordHash = param.passwordHash;
         return user;
     }
 }

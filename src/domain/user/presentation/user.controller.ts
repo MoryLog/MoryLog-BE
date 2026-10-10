@@ -1,4 +1,5 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UploadedFile } from "@nestjs/common";
+import { Body, Controller, HttpCode, HttpStatus, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { LocalSignupService } from "../service/local-signup.service";
 import { SignupUserRequest } from "../service/dto/request/signup.request";
 import { ProfileImageValidationPipe } from "src/global/pipe/profile-image-validation.pipe";
@@ -18,6 +19,7 @@ export class UserController{
 
     @Post('signup')
     @HttpCode(HttpStatus.CREATED)
+    @UseInterceptors(FileInterceptor('profileImage'))
     async signup(
         @Body() 
         request: SignupUserRequest,
@@ -25,7 +27,7 @@ export class UserController{
         @UploadedFile(ProfileImageValidationPipe)
         profileImage: Express.Multer.File
     ){
-        this.localSignupService.signup(request, profileImage);
+        await this.localSignupService.signup(request, profileImage);
     }
 
     @Post('login')
